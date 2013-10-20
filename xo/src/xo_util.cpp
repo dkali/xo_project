@@ -1,5 +1,8 @@
 #include "../include/xo_util.h"
 
+using namespace std;
+
+map<int,char> ledhash;
 
 int init()
 {
@@ -14,7 +17,7 @@ int init()
         bcm2835_gpio_write(pins[index], LOW);
     }
 
-    // ledhash = cfuhash_new();
+    // ledhash = new Hashtable();
     return 0;
 }
 
@@ -42,6 +45,6 @@ void uninit()
     }
     bcm2835_gpio_clr_multi( mask );
 
-    // cfuhash_clear( ledhash );
+    // delete ledhash;
     bcm2835_close();
 }

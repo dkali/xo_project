@@ -1,3 +1,8 @@
 #!/bin/bash
 
-gcc -o xo src/xo_util.c src/xo_main.c -l bcm2835 -l pthread
+# gcc -o xo src/xo_util.c src/xo_main.c -l bcm2835 -l pthread # for C
+# g++ -o xo src/xo_util.cpp src/xo_main.cpp -l bcm2835 -l pthread # for C++
+
+g++ -c -o obj/xo_util.o src/xo_util.cpp 
+g++ -c -o obj/xo_main.o src/xo_main.cpp
+g++ -o xo obj/xo_util.o obj/xo_main.o -l bcm2835 -l pthread

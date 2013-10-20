@@ -1,12 +1,16 @@
 #ifndef XO_UTIL_H
 #define XO_UTIL_H
 
-#include <cfuhash.h>
+// #include <cfuhash.h>
 #include <stdio.h>
 #include "pin.h"
 #include <pthread.h>
+#include <iostream>
+#include <map>
 
-RPiGPIOPin pinLight[9];
+// cfuhash_table_t *ledhash = NULL;
+// #define HASH __gnu_cxx
+extern std::map<int,char> ledhash;
 
 //function prototypes
 int init();

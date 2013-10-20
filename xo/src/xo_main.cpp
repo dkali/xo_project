@@ -1,6 +1,6 @@
 #include "../include/xo_util.h"
 
-cfuhash_table_t *ledhash = NULL;
+using namespace std;
 
 int main()
 {
