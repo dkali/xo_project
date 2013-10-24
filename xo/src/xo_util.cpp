@@ -1,44 +1,83 @@
 #include "../include/xo_util.h"
+#include "../include/protocol_v1.h"
+#include "../include/pin.h"
 
 using namespace std;
 
-map<int,char> ledhash;
-mutex mtx;
-list<int> pinMask;
-
-int init()
+int init( coreData **core )
 {
+    coreData *pData = NULL;
+
     if (!bcm2835_init())
         return 1;
 
     pin_init();
 
+    pData = new coreData;
+    pData->ledhash = new map<int,char>;
+    pData->mtx = new mutex;
+    pData->pinMaskList = new list<int>;
+    pData->state = STATE_GAME;
+
+    *core = pData;
     return 0;
 }
 
 //function will blink with leds, indicating gamers move.
 void* ledProcessing(void *arg)
 {
-    // printf("blinker thread started\n");
+    printf("[led]: thread started\n");
+    coreData *core = ( coreData *) arg;
 
-    bcm2835_gpio_write(V1B, HIGH);
-    bcm2835_gpio_write(H2, HIGH);
+    while (true)
+    {
+        switch (core->state)
+        {
+            case STATE_GAME:
+            {
+                core->mtx->lock();
+                for (list<int>::iterator mask = core->pinMaskList->begin(); mask != core->pinMaskList->end(); ++mask)
+                {
+                    bcm2835_gpio_set_multi( *mask );
+                    bcm2835_delay(1);
+                    bcm2835_gpio_clr_multi( *mask );
+                }
+                core->mtx->unlock();
+            }
+            break;
 
-    bcm2835_delay(5000);
+            case STATE_WIN:
+            {
 
+            }
+            break;
+
+            case STATE_END:
+            {
+                printf("[led]: thread exit\n");
+                pthread_exit(NULL);
+            }
+            break;
+        }
+    }
+
+    printf("[led]: thread exit 2\n");
     return NULL;
 }
 
 //function will parse the gamers move.
 void* actionProcessing(void *arg)
 {    
-    while (ledhash.size() < 9 )
+    coreData *core = ( coreData *) arg;
+
+    printf("[act]: thread started\n");
+
+    while (core->ledhash->size() < 9 )
     {
         string move;
         char cell, color;
         int cellnum = 0;
 
-        cout << "size is" << ledhash.size() << endl;
         getline(cin, move);
         
         if ( move.size() != 2)
@@ -57,23 +96,40 @@ void* actionProcessing(void *arg)
             continue;
         }
 
-        pair<map<int,char>::iterator,bool> ret;
-        ret = ledhash.insert( pair<int,char>(cellnum, color) );
-        // cout << color << " light into " << cell << " cell" << endl;
+        map<int,char>::iterator ret;
+        ret = core->ledhash->find(cellnum);
+        if ( ret == core->ledhash->end() )
+        {
+            pair<map<int,char>::iterator,bool> ret;
+            ret = core->ledhash->insert( pair<int,char>(cellnum, color) );
 
-        // TODO: parse ledhash to mask_array
+            if ( ret.second == true ) //new move
+                update_pinMask( core, cellnum, color );
+        }
+        else
+        {
+            printf("take another cell\n");
+        }
 
         // TODO: check for win condition
-        update_pinMask( ret );
 
     }
 
+    if ( core->state == STATE_WIN )
+    {
+        printf("we have a winner!!\n");
+        // TODO: blink winner line
+    }
+
+    core->state = STATE_END;
+    printf("[act]: thread exit\n");
     return NULL;
 }
 
 // free all allocated resources
-void uninit()
+void uninit( coreData **core  )
 {
+    coreData *pData = *core;
     int index = 0;
     int mask = 0;
 
@@ -82,7 +138,9 @@ void uninit()
     }
     bcm2835_gpio_clr_multi( mask );
 
-    ledhash.clear();
-    pinMask.clear();
+    delete pData->ledhash;
+    delete pData->pinMaskList;
+    delete pData->mtx;
+    delete pData;
     bcm2835_close();
 }
