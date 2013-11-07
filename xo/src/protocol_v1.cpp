@@ -18,6 +18,11 @@ void update_pinMask( coreData *core, int cell, char color )
     
     int mask = 0;
 
+    if ( core == NULL )
+    {
+        createException("update_pinMask has null coreData");
+    }
+
     switch ( cell )
     {
         case 1:

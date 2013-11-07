@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <list>
 #include <mutex>
+#include <exception>
+#include <string>
 
 enum gameState
 {
@@ -27,8 +29,10 @@ struct coreData
 
 //function prototypes
 int init( coreData **core );
-void* ledProcessing(void *arg);
-void* actionProcessing(void *arg);
+void* ledProcessing( void *arg );
+void* actionProcessing( void *arg );
 void uninit( coreData **core );
+bool checkWinCondition( coreData* core );
+void createException( std::string excText );
 
 #endif //XO_UTIL_H

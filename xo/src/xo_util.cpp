@@ -23,6 +23,25 @@ int init( coreData **core )
     return 0;
 }
 
+class myException: public exception
+{
+private:
+    string exText;
+
+public:
+    myException( string msg )
+    {
+        exText = msg;
+    }
+
+    string what()
+    {
+    return exText;
+    }
+
+    ~myException() throw() {}
+};
+
 //function will blink with leds, indicating gamers move.
 void* ledProcessing(void *arg)
 {
@@ -112,6 +131,8 @@ void* actionProcessing(void *arg)
         }
 
         // TODO: check for win condition
+        bool bWin = false;
+        bWin = checkWinCondition( core );
 
     }
 
@@ -124,6 +145,27 @@ void* actionProcessing(void *arg)
     core->state = STATE_END;
     printf("[act]: thread exit\n");
     return NULL;
+}
+
+bool checkWinCondition( coreData* core )
+{
+    bool bWin = false;
+
+
+
+    return bWin;
+}
+
+void createException( string excText )
+{
+    myException *p = new myException( excText );
+    try {
+      throw p;
+    }
+    catch( myException *e )
+    {
+        cout << "[ERROR]: " << e->what() << endl;
+    }
 }
 
 // free all allocated resources
@@ -144,3 +186,4 @@ void uninit( coreData **core  )
     delete pData;
     bcm2835_close();
 }
+
